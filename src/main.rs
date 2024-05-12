@@ -9,19 +9,23 @@ use std::{
 use uuid::Uuid;
 
 fn main() {
+    let current_ip = Arc::new(Mutex::new(String::new()));
+    let current_ip_clone = current_ip.clone();
     thread::spawn(|| {
-        host("".to_string());
+        host(current_ip_clone);
     });
     
     loop{}
 }
 
-fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, mut ip: String) {
-    if ip.is_empty() {
-        ip = "192.168.100.31:3012".to_string();
+fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<String>>) {
+    let mut ip_locked = ip.lock().unwrap();
+    if ip_locked.is_empty() {
+        *ip_locked = "192.168.100.31:3012".to_string();
     }
-    let listener = TcpListener::bind(&ip).unwrap();
-    println!("listening on {}", ip);
+
+    let listener = TcpListener::bind(&*ip_locked).unwrap();
+    println!("listening on {}", *ip_locked);
 
     let mut hosts: HashMap<String, String> = HashMap::new();
     let switch = Arc::new(Mutex::new(false));
@@ -49,7 +53,9 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, mut ip: String) {
         };
         handle_conecction(stream, &mut hosts);
     }
-    // Initialize Host thread
+    // thread::spawn(|| {
+
+    // })
 }
 
 fn handle_conecction(mut stream: TcpStream, hosts: &mut HashMap<String, String>) {
@@ -115,8 +121,9 @@ fn switch_connection(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
     if stream.peer_addr().unwrap().ip().to_string() == hosts.get(&http_request[0]).unwrap().to_owned() {
         let ip = stream.peer_addr().unwrap().ip().to_string();
         let response = format!("OK\n{}", ip);
-        stream.write_all(response.as_bytes()).unwrap();
         
+        stream.write_all(response.as_bytes()).unwrap();
+
     } else {
         let response;
         if http_request[0] == "Id: none" {
@@ -143,20 +150,22 @@ fn switch_connection(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
     }
 }
 
-fn host(mut ip: String) {
-    if ip.is_empty() {
-        ip = "192.168.100.31:3012".to_string();
+fn host(ip: Arc<Mutex<String>>) {
+    let ip_clone = ip.clone();
+    let mut ip_locked = ip_clone.lock().unwrap();
+    if ip_locked.is_empty() {
+        *ip_locked = "192.168.100.31:3012".to_string();
     }
 
     let mut response = String::from("Id: none\nHeader 1\nHeader 2\nBody");
     loop {
         let mut stream;
-        match TcpStream::connect(&ip) {
+        match TcpStream::connect(&*ip_locked) {
             Ok(s) => stream = s,
             Err(_) => {
-                thread::spawn(||{
+                thread::spawn(move ||{
                     let termination_signal = Arc::new(Mutex::new(false));
-                    tcp_listener_thread(termination_signal, "".to_string());
+                    tcp_listener_thread(termination_signal, ip);
                     println!("FINALIZADO");
                 });
                 break;
@@ -177,8 +186,8 @@ fn host(mut ip: String) {
             response = format!("{}\nHeader 1\nHeader 2\nBody", http_response[2]);
         } 
         if http_response[1] != "None" {
+            *ip_locked = dbg!(format!("{}:3012",&http_response[1]));
             thread::spawn(move ||{
-                let ip = dbg!(format!("{}:3012",&http_response[1]));
                 println!("Response: {:#?}", http_response);
                 println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
                 
@@ -188,6 +197,8 @@ fn host(mut ip: String) {
             });
             break;
         }
+        println!("Response: {:#?}", http_response);
+        println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
         thread::sleep(Duration::from_secs(1));
     }
 }
