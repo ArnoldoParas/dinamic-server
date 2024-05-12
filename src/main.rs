@@ -115,7 +115,7 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex
         let mut signal = termination_signal.lock().unwrap();
         *signal = true;
 
-        let mut stream = TcpStream::connect(&test).unwrap();
+        let mut stream = TcpStream::connect(dbg!(&test)).unwrap();
         stream.write_all("OK\nNone\n".as_bytes()).unwrap();
 
         break;
