@@ -101,6 +101,11 @@ fn handle_conecction(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
 
 fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<String>>) {
     println!("Clock initialization");
+    let test;
+    {
+        let ip_locked = ip.lock().unwrap();
+        test = String::from(&*ip_locked);
+    }
     loop {
         thread::sleep(Duration::from_secs(5));
         { // If server switch
@@ -108,9 +113,6 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex
             *lock = true;
         }
         thread::sleep(Duration::from_secs(4));
-        let test;
-        let ip_locked = ip.lock().unwrap();
-        test = &*ip_locked;
 
         let mut signal = termination_signal.lock().unwrap();
         *signal = true;
