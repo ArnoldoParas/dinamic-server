@@ -19,14 +19,18 @@ fn main() {
 }
 
 fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<String>>) {
-    let ip_clone = ip.clone();
-    let mut ip_locked = ip_clone.lock().unwrap();
-    if ip_locked.is_empty() {
-        *ip_locked = "192.168.100.31:3012".to_string();
+    let test ;
+    {
+        let ip_clone = ip.clone();
+        let mut ip_locked = ip_clone.lock().unwrap();
+        if ip_locked.is_empty() {
+            *ip_locked = "192.168.100.31:3012".to_string();
+        }
+        test = String::from(&*ip_locked);
     }
 
-    let listener = TcpListener::bind(&*ip_locked).unwrap();
-    println!("listening on {}", *ip_locked);
+    let listener = TcpListener::bind(&test).unwrap();
+    println!("listening on {}", &test);
 
     let mut hosts: HashMap<String, String> = HashMap::new();
     let switch = Arc::new(Mutex::new(false));
