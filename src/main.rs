@@ -37,10 +37,10 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
 
     let switch_clone = switch.clone();
     let termination_signal_clone = termination_signal.clone();
-    let ip_clone = ip.clone();
+    let ip_clonee = ip.clone();
 
     thread::spawn(move ||{
-        clk(switch_clone, termination_signal_clone, ip_clone);
+        clk(switch_clone, termination_signal_clone, ip_clonee);
     });
 
     for stream in listener.incoming() {
@@ -108,12 +108,14 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex
             *lock = true;
         }
         thread::sleep(Duration::from_secs(4));
+        let test;
         let ip_locked = ip.lock().unwrap();
-        
+        test = &*ip_locked;
+
         let mut signal = termination_signal.lock().unwrap();
         *signal = true;
 
-        let mut stream = TcpStream::connect(&*ip_locked).unwrap();
+        let mut stream = TcpStream::connect(&test).unwrap();
         stream.write_all("OK\nNone\n".as_bytes()).unwrap();
 
         break;
