@@ -55,7 +55,7 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
         handle_conecction(stream, &mut hosts);
     }
     thread::spawn(|| {
-        host(ip);
+        host(dbg!(ip));
     });
 }
 
