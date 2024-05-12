@@ -89,16 +89,17 @@ fn handle_conecction(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
     } else {
         if hosts.get(&http_request[0]) != None {
             response = format!("OK\nNone\nUr id is: {}", http_request[0]);
-            println!("----------\nhost ip: {}\n----------\n{:?}",stream.peer_addr().unwrap(), hosts);
+            // println!("----------\nhost ip: {}\n----------\n{:?}",stream.peer_addr().unwrap(), hosts);
         } else {
             response = format!("OK\nNone\nUr id is: {}", http_request[0]);
-            println!("----------\nhost ip: {}\n----------\n{:?}",hosts.get(&http_request[0]).unwrap(), hosts);
+            // println!("----------\nhost ip: {}\n----------\n{:?}",hosts.get(&http_request[0]).unwrap(), hosts);
         }
     }
     stream.write_all(response.as_bytes()).unwrap();
 }
 
 fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>) {
+    println!("Clock initialization");
     loop {
         thread::sleep(Duration::from_secs(5));
         { // If server switch
@@ -204,7 +205,7 @@ fn host(ip: Arc<Mutex<String>>) {
                 *ip_locked = format!("{}:3012",&http_response[1]);
             }
             thread::spawn(move ||{
-                println!("Response: {:#?}", http_response);
+                println!("Response: {:?}", http_response);
                 // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
                 
                 let termination_signal = Arc::new(Mutex::new(false));
@@ -213,7 +214,7 @@ fn host(ip: Arc<Mutex<String>>) {
             });
             break;
         }
-        println!("Response: {:#?}", http_response);
+        println!("Response: {:?}", http_response);
         // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
         thread::sleep(Duration::from_secs(1));
     }
