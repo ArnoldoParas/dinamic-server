@@ -19,7 +19,8 @@ fn main() {
 }
 
 fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<String>>) {
-    let mut ip_locked = ip.lock().unwrap();
+    let ip_clone = ip.clone();
+    let mut ip_locked = ip_clone.lock().unwrap();
     if ip_locked.is_empty() {
         *ip_locked = "192.168.100.31:3012".to_string();
     }
@@ -53,9 +54,9 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
         };
         handle_conecction(stream, &mut hosts);
     }
-    // thread::spawn(|| {
-
-    // })
+    thread::spawn(|| {
+        host(ip);
+    });
 }
 
 fn handle_conecction(mut stream: TcpStream, hosts: &mut HashMap<String, String>) {
