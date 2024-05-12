@@ -109,8 +109,10 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>) {
         thread::sleep(Duration::from_secs(4));
         let mut signal = termination_signal.lock().unwrap();
         *signal = true;
+        println!("Señlas de terminacion envidada");
         let mut stream = TcpStream::connect("192.168.100.31:3012").unwrap();
         stream.write_all("OK\nNone\n".as_bytes()).unwrap();
+        println!("Mensaje enviado");
         break;
     }
 }
@@ -205,7 +207,7 @@ fn host(ip: Arc<Mutex<String>>) {
                 *ip_locked = format!("{}:3012",&http_response[1]);
             }
             thread::spawn(move ||{
-                println!("Response: {:?}", http_response);
+                println!("Response: {:#?}", http_response);
                 // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
                 
                 let termination_signal = Arc::new(Mutex::new(false));
@@ -214,7 +216,7 @@ fn host(ip: Arc<Mutex<String>>) {
             });
             break;
         }
-        println!("Response: {:?}", http_response);
+        println!("Response: {:#?}", http_response);
         // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
         thread::sleep(Duration::from_secs(1));
     }
