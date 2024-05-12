@@ -223,6 +223,6 @@ fn host(ip: Arc<Mutex<String>>) {
         }
         println!("Response: {:#?}", http_response);
         // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
-        thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_millis(150));
     }
 }
