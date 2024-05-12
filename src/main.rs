@@ -198,7 +198,7 @@ fn host(ip: Arc<Mutex<String>>) {
             {
                 let ip_clone = ip.clone();
                 let mut ip_locked = ip_clone.lock().unwrap();
-                *ip_locked = format!("{}:3012",&http_response[1]);
+                dbg!(*ip_locked = format!("{}:3012",&http_response[1]));
             }
             thread::spawn(move ||{
                 println!("Response: {:#?}", http_response);
