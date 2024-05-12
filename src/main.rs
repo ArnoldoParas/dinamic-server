@@ -37,9 +37,10 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
 
     let switch_clone = switch.clone();
     let termination_signal_clone = termination_signal.clone();
+    let ip_clone = ip.clone();
 
     thread::spawn(move ||{
-        clk(switch_clone, termination_signal_clone);
+        clk(switch_clone, termination_signal_clone, ip_clone);
     });
 
     for stream in listener.incoming() {
@@ -98,7 +99,7 @@ fn handle_conecction(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
     stream.write_all(response.as_bytes()).unwrap();
 }
 
-fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>) {
+fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<String>>) {
     println!("Clock initialization");
     loop {
         thread::sleep(Duration::from_secs(5));
@@ -107,12 +108,14 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>) {
             *lock = true;
         }
         thread::sleep(Duration::from_secs(4));
+        let ip_locked = ip.lock().unwrap();
+        
         let mut signal = termination_signal.lock().unwrap();
         *signal = true;
-        println!("Señlas de terminacion envidada");
-        let mut stream = TcpStream::connect("192.168.100.31:3012").unwrap();
+
+        let mut stream = TcpStream::connect(&*ip_locked).unwrap();
         stream.write_all("OK\nNone\n".as_bytes()).unwrap();
-        println!("Mensaje enviado");
+
         break;
     }
 }
