@@ -178,7 +178,7 @@ fn host(mut ip: String) {
         } 
         if http_response[1] != "None" {
             thread::spawn(move ||{
-                let ip = format!("{}:3012",&http_response[1]);
+                let ip = dbg!(format!("{}:3012",&http_response[1]));
                 println!("Response: {:#?}", http_response);
                 println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
                 
