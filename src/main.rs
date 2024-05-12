@@ -30,7 +30,7 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
     }
 
     let listener = TcpListener::bind(&test).unwrap();
-    println!("listening on {}", &test);
+    println!("---\nListening on {}\n---", &test);
 
     let mut hosts: HashMap<String, String> = HashMap::new();
     let switch = Arc::new(Mutex::new(false));
@@ -187,7 +187,7 @@ fn host(ip: Arc<Mutex<String>>) {
                 thread::spawn(move ||{
                     let termination_signal = Arc::new(Mutex::new(false));
                     tcp_listener_thread(termination_signal, ip);
-                    println!("FINALIZADO");
+                    println!("----------\nFINALIZADO\n----------");
                 });
                 break;
             }
@@ -222,7 +222,7 @@ fn host(ip: Arc<Mutex<String>>) {
             break;
         }
         println!("Response: {:#?}", http_response);
-        println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
+        // println!("----------\nhost ip: {}\n----------",stream.peer_addr().unwrap());
         thread::sleep(Duration::from_secs(1));
     }
 }
