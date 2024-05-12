@@ -53,8 +53,9 @@ fn tcp_listener_thread(termination_signal: Arc<Mutex<bool>>, ip: Arc<Mutex<Strin
         let stream = stream.expect("Fallo en inicial el strea?");
         let lock = switch.lock().expect("Error?");
         if *lock{
-          switch_connection(stream, &mut hosts);
-          continue; 
+            let ip_clone = ip.clone();
+            switch_connection(stream, &mut hosts, ip_clone);
+            continue; 
         };
         handle_conecction(stream, &mut hosts);
     }
@@ -113,7 +114,7 @@ fn clk(sw: Arc<Mutex<bool>>, termination_signal: Arc<Mutex<bool>>) {
     }
 }
 
-fn switch_connection(mut stream: TcpStream, hosts: &mut HashMap<String, String>) {
+fn switch_connection(mut stream: TcpStream, hosts: &mut HashMap<String, String>, ip: Arc<Mutex<String>>) {
     let buf_reader = BufReader::new(&mut stream);
     let http_request: Vec<_> = buf_reader
         .lines()
@@ -124,10 +125,12 @@ fn switch_connection(mut stream: TcpStream, hosts: &mut HashMap<String, String>)
     println!("Request: {:#?}", http_request);
 
     if stream.peer_addr().unwrap().ip().to_string() == hosts.get(&http_request[0]).unwrap().to_owned() {
-        let ip = stream.peer_addr().unwrap().ip().to_string();
-        let response = format!("OK\n{}", ip);
+        let new_ip = stream.peer_addr().unwrap().ip().to_string();
+        let response = format!("OK\n{}", new_ip);
         
         stream.write_all(response.as_bytes()).unwrap();
+        let mut ip_locked = ip.lock().unwrap();
+        *ip_locked = format!("{}:3012",new_ip);
 
     } else {
         let response;
@@ -198,7 +201,7 @@ fn host(ip: Arc<Mutex<String>>) {
             {
                 let ip_clone = ip.clone();
                 let mut ip_locked = ip_clone.lock().unwrap();
-                dbg!(*ip_locked = format!("{}:3012",&http_response[1]));
+                *ip_locked = format!("{}:3012",&http_response[1]);
             }
             thread::spawn(move ||{
                 println!("Response: {:#?}", http_response);
